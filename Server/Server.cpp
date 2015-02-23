@@ -2,11 +2,12 @@
 
 Server::Server()
 {
-
+  _listener.listen(55001);
 }
+
 Server::~Server()
 {
-
+  _listener.close();
 }
 
 void	Server::sendSocket(sf::TcpSocket &socket, sf::Packet &packet, bool oppenent)
@@ -81,14 +82,11 @@ void	Server::game()
 {
   std::cout << "Ip adress : " << sf::IpAddress::getLocalAddress() << " ." << std::endl;
 
-  sf::TcpListener	listener;
   sf::SocketSelector	selector;
 
-  listener.listen(55001);
-
-  while (listener.accept(_player[0]._socket) != sf::Socket::Done);
+  while (_listener.accept(_player[0]._socket) != sf::Socket::Done);
   selector.add(_player[0]._socket);
-  while (listener.accept(_player[1]._socket) != sf::Socket::Done);
+  while (_listener.accept(_player[1]._socket) != sf::Socket::Done);
   selector.add(_player[1]._socket);
 
   sendPhase(_player[0], Server::DrawPhase);

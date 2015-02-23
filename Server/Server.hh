@@ -39,6 +39,7 @@ public:
 private:
   Player		_player[2];
   Deck			_deck;
+  sf::TcpListener	_listener;
 };
 
 #endif
