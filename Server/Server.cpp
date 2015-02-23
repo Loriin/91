@@ -7,6 +7,7 @@ Server::Server()
 
 Server::~Server()
 {
+  std::cout << "Fermeture de la socket !" << std::endl;
   _listener.close();
 }
 
