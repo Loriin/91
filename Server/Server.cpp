@@ -17,7 +17,7 @@ void	Server::sendSocket(sf::TcpSocket &socket, sf::Packet &packet, bool oppenent
   sf::Packet	sender;
 
   packet >> cmd >> p1 >> p2;
-  //std::cout << "Reception de la commande " << cmd << std::endl;
+  std::cout << "Reception de la commande " << cmd << std::endl;
   sender << cmd << oppenent << p1 << p2;
   socket.send(sender);
 }
@@ -49,12 +49,11 @@ void	Server::sendReverse(Server::Player &me, Server::Player &him)
   sf::Packet	sender[2];
   Deck::Card	card;
 
-  //std::cout << "Reverse de la commande " << cmd << std::endl;
+  std::cout << "Reverse de la commande " << cmd << std::endl;
   me._socket.receive(me._packet);
   me._packet >> cmd >> p1 >> p2;
   if (cmd == 1)
     {
-      std::cout << "Il pioche !" << std::endl;
       card = _deck.popCard();
       if (card._type == Deck::None && card._clan == Deck::NoClan)
 	{
@@ -99,7 +98,7 @@ void	Server::game()
     {
       if (selector.wait())
 	{
-	  //std::cout << "Commande en ecoute..." << std::endl;
+	  std::cout << "Commande en ecoute..." << std::endl;
 	  if (selector.isReady(_player[0]._socket))
 	    sendReverse(_player[0], _player[1]);
 	  else if (selector.isReady(_player[1]._socket))
