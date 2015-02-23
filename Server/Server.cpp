@@ -80,7 +80,8 @@ void	Server::sendReverse(Server::Player &me, Server::Player &him)
 
 void	Server::game()
 {
-  std::cout << "Ip adress : " << sf::IpAddress::getLocalAddress() << " ." << std::endl;
+  std::cout << "Ip adress (Public) : " << sf::IpAddress::getPublicAddress() << std::endl;
+  std::cout << "Ip adress (Local)  : " << sf::IpAddress::getLocalAddress() << std::endl;
 
   sf::SocketSelector	selector;
 
