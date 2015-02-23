@@ -246,6 +246,7 @@ void BattleConnect::openModule()
   // _connect = BattleConnect::Start;
   // _th.launch();
   //	___________________
+
   return;
   _loopSong->setLoop(true);
   _loopSong->play();

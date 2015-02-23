@@ -87,12 +87,15 @@ void	Server::game()
 
   while (_listener.accept(_player[0]._socket) != sf::Socket::Done);
   selector.add(_player[0]._socket);
+  std::cout << "Ajout du joueur 1" << std::endl;
   while (_listener.accept(_player[1]._socket) != sf::Socket::Done);
   selector.add(_player[1]._socket);
+  std::cout << "Ajout du joueur 2" << std::endl;
 
   sendPhase(_player[0], Server::DrawPhase);
   sendPhase(_player[1], Server::ServerPhase);
 
+  std::cout << "Phase envoyé, début du jeu" << std::endl;
   while (_player[0]._score != 91 && _player[1]._score != 91)
     {
       if (selector.wait())
