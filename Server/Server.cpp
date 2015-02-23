@@ -158,3 +158,11 @@ void	Server::changePhase(sf::Uint32 cmd, Server::Player &me, Server::Player &him
       break;
     }
 }
+
+void		Server::terminate()
+{
+  sendPhase(_player[0], Server::ServerPhase);
+  sendPhase(_player[1], Server::ServerPhase);
+  _listener.close();
+  std::cout << "close" << std::endl;
+}

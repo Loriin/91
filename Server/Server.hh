@@ -36,6 +36,7 @@ public:
   void deletePlayer(Player&);
   void sendReverse(Player&, Player&);
   void changePhase(sf::Uint32, Player&, Player&);
+  void terminate();
 private:
   Player		_player[2];
   Deck			_deck;
