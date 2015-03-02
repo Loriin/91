@@ -51,9 +51,10 @@ void	Server::sendReverse(Server::Player &me, Server::Player &him)
   sf::Packet	sender[2];
   Deck::Card	card;
 
-  std::cout << "Reverse de la commande " << cmd << std::endl;
+
   me._socket.receive(me._packet);
   me._packet >> cmd >> p1 >> p2;
+  std::cout << "Reverse de la commande " << cmd << std::endl;
   if (cmd == 1)
     {
       card = _deck.popCard();
@@ -81,6 +82,7 @@ void	Server::sendReverse(Server::Player &me, Server::Player &him)
 
 void	Server::game()
 {
+  std::cout << "what" << std::endl;
   std::cout << "Ip adress (Public) : " << sf::IpAddress::getPublicAddress() << std::endl;
   std::cout << "Ip adress (Local)  : " << sf::IpAddress::getLocalAddress() << std::endl;
 
@@ -99,6 +101,7 @@ void	Server::game()
   std::cout << "Phase envoyé, début du jeu" << std::endl;
   while (_player[0]._score != 91 && _player[1]._score != 91)
     {
+      std::cout << "Nike ta mere !!" << std::endl;
       if (selector.wait())
 	{
 	  std::cout << "Commande en ecoute..." << std::endl;

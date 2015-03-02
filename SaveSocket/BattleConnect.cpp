@@ -11,10 +11,19 @@ BattleConnect::BattleConnect(Engine *engine, unsigned int bg,
 					     _deck(engine),
 					     _well(0),
 					     _phase(BattleConnect::ServerPhase),
-					     //_connect(BattleConnect::Disconnected),
+					     _th(&BattleConnect::listenSocket, this),
+					     _connect(BattleConnect::Disconnected),
 					     _server(0)
 {
   _server = new Server(this);
+  _execute[0] = &BattleConnect::moveOpponent;
+  _execute[1] = &BattleConnect::dropCard;
+  _execute[2] = &BattleConnect::dropWell;
+  _execute[3] = &BattleConnect::dropBoard;
+  _execute[4] = &BattleConnect::putWell;
+  _execute[5] = &BattleConnect::putBoard;
+
+
 
   _deck.check();
   _deck.setPosition(250, 730);
@@ -105,7 +114,7 @@ BattleConnect::~BattleConnect()
 void BattleConnect::drawModule()
 {
   _engine->getRender()->draw(*_bg);
-  if (!_server->isConnect())
+  if (_connect == BattleConnect::Disconnected)
     {
       _engine->getRender()->draw(_txt);
       return;
@@ -130,19 +139,23 @@ void BattleConnect::textEvent()
   // Back = 8
 
   char code;
-  if (_engine->getEvent()->type != sf::Event::TextEntered || _ip.size() >= 30)
-    return;
-
-  code = static_cast<char>(_engine->getEvent()->text.unicode);
-  if (code == 8)
-    _ip = "";
-  else if (code == 13 && _server->connect(_ip))
-    _server->start();
-  else if (code == 13)
-    _txt.setString("Erreur: Veuillez entrez l'adresse Hote");
-  else
-    _ip += code;
-  _txt.setString(_ip);
+  if (_engine->getEvent()->type == sf::Event::TextEntered && _ip.size() <= 30)
+    {
+      code = static_cast<char>(_engine->getEvent()->text.unicode);
+      if (code == 8)
+	_ip = "";
+      else if (code == 13 && _socket.connect(sf::IpAddress(_ip), 55001) == sf::Socket::Done)
+	{
+	  _connect = BattleConnect::Wait;
+	  _th.launch();
+	  return;
+	}
+      else if (code == 13)
+	_txt.setString("Erreur: Veuillez entrez l'adresse Hote");
+      else
+	_ip += code;
+      _txt.setString(_ip);
+    }
 }
 
 bool BattleConnect::drawEvent()
@@ -154,14 +167,26 @@ bool BattleConnect::drawEvent()
       if (_engine->getEvent()->mouseButton.button == sf::Mouse::Left)
 	{
 	  if (_deck.clickOn(_x, _y) && _hand.isEmpty())
-	    return (_server->sendCommand(1));
+	    {
+	      _server->sendCommand(1);
+	      return (true);
+	    }
+
 	  for (std::size_t i = 0; i < 3; i++)
-	    if (_fields[i]->hoverCard(_x, _y) != Field::IsOut && _hand.isEmpty() &&
-		!_fields[i]->isEmpty())
-	      return (_server->sendCommand(3, i, 0));
+	    {
+	      if (_fields[i]->hoverCard(_x, _y) != Field::IsOut && _hand.isEmpty() &&
+		  !_fields[i]->isEmpty())
+		{
+		  _server->sendCommand(3, i, 0);
+		  return (true);
+		}
+	    }
 	  if ((well = _well->hoverCard(_x, _y)) < Well::IsIn &&
 	      !_well->isEmpty(well) && _hand.isEmpty())
-	    return (_server->sendCommand(2, well));
+	    {
+	      _server->sendCommand(2, well);
+	      return (true);
+	    }
 	}
     }
   return (false);
@@ -176,13 +201,22 @@ bool BattleConnect::mainEvent()
       if (_engine->getEvent()->mouseButton.button == sf::Mouse::Left)
 	{
 	  for (std::size_t i = 0; i < 3; i++)
-	    if (_fields[i]->hoverCard(_x, _y) != Field::IsOut && !_hand.isEmpty() &&
-		!_fields[i]->isFull())
-	      return (_server->sendCommand(5, i));
-	  
+	    {
+	      if (_fields[i]->hoverCard(_x, _y) != Field::IsOut && !_hand.isEmpty() &&
+		  !_fields[i]->isFull())
+		{
+		  _server->sendCommand(5, i);
+		  return (true);
+		}
+	    }
+
 	  if ((well = _well->hoverCard(_x, _y)) < Well::IsIn &&
 	      !_well->isFull(well) && !_hand.isEmpty())
-	    return (_server->sendCommand(4, well));
+	    {
+	      _server->sendCommand(4, well);
+	      return (true);
+
+	    }
 	}
     }
   return (false);
@@ -190,12 +224,7 @@ bool BattleConnect::mainEvent()
 
 void BattleConnect::eventModule()
 {
-  if (_phase == BattleConnect::DrawPhase ||
-      _phase == BattleConnect::MainPhase)
-    std::cout << "je suis dans la bonne phase..." << std::endl;
-  else
-    std::cout << "mauvaise phase" << std::endl;
-  if (!_server->isConnect())
+  if (_connect == BattleConnect::Disconnected)
     {
       textEvent();
       return;
@@ -217,14 +246,194 @@ void BattleConnect::openModule()
 
 void BattleConnect::closeModule()
 {
+  _socket.disconnect();
   return;
   _loopSong->stop();
 }
 
+void BattleConnect::sendCommand(std::size_t cmd, std::size_t p1, std::size_t p2)
+{
+  sf::Packet	packet;
+  sf::Uint32	Ucmd = cmd;
+  sf::Uint32	Up1 = p1;
+  sf::Uint32	Up2 = p2;
+ 
+  std::cout << "Ajout de la commande " << cmd << " dans la pile." << std::endl;
+  packet << Ucmd << Up1 << Up2;
+  _cmd.push_back(packet);
+}
+
 void BattleConnect::updateModule()
 {
-  _server->execute();
+  if ((_connect == BattleConnect::Start || _connect == BattleConnect::Run) &&
+      _phase == BattleConnect::MainPhase)
+    sendCommand(0, _x, _y);
+  std::size_t	max = _cmd.size();
+  if (max == 0)
+    return;
+  std::cout << "Entré dans l'update." << std::endl;
+
+  for (std::size_t i = 0; i < max; i++)
+    {
+      while (_socket.send(_cmd[0]) != sf::Socket::Done)
+	std::cout << "retry de la commande !" << std::endl;
+      std::cout << "Commande envoyé !" << std::endl;
+      _cmd.erase(_cmd.begin());
+    }
 }
+
+bool BattleConnect::receiveSpecial(sf::Packet &p, sf::Uint32 pos)
+{
+  (void)p;
+  if (!(pos < 304 && pos >= 300))
+    return (false);
+  if (pos == 300)
+    _phase = BattleConnect::DrawPhase;
+  else if (pos == 301)
+    _phase = BattleConnect::MainPhase;
+  return (true);
+}
+
+void BattleConnect::listenSocket()
+{
+  sf::Packet	packet;
+  sf::Uint32	pos;
+
+  while (_connect == BattleConnect::Wait)
+    {
+      if (_socket.receive(packet) == sf::Socket::Done)
+	{
+	  packet >> pos;
+	  if (receiveSpecial(packet, pos))
+	    _connect = BattleConnect::Start;
+	  packet.clear();
+	}
+      else
+	{
+	  _connect = BattleConnect::Disconnected;
+	  return;
+	}
+      sf::sleep(sf::milliseconds(10));
+    }
+
+  while (_connect != BattleConnect::Stop && 
+	 _connect != BattleConnect::Exit)
+    {
+      //std::cout << "Ecoute des commandes." << std::endl;
+      if (_socket.receive(packet) == sf::Socket::Done)
+	{
+	  packet >> pos;
+	  //std::cout << "Reception de la commande " << pos << std::endl;
+	  if (pos < 6)
+	    (this->*_execute[pos])(packet);
+	  else
+	    receiveSpecial(packet, pos);
+	  packet.clear();
+	}
+      else
+	{
+	  _connect = BattleConnect::Disconnected;
+	  _txt.setString("Vous avez été déconnecté du serveur...");
+	  return;
+	}
+      sf::sleep(sf::milliseconds(10));
+    }
+  _connect = BattleConnect::Stop;
+}
+
+void BattleConnect::moveOpponent(sf::Packet &packet)
+{
+  sf::Uint32	x;
+  sf::Uint32	y;
+  bool		oppenent;
+
+  packet >> oppenent;
+  packet >> x;
+  packet >> y;
+  if (oppenent)
+    _handE.setPosition(x, y);
+}
+
+void BattleConnect::dropCard(sf::Packet &packet)
+{
+  bool		oppenent;
+  sf::Uint32	type;
+  sf::Uint32	clan;
+
+  packet >> oppenent;
+  packet >> type;
+  packet >> clan;
+
+  if (oppenent)
+    {
+      std::cout << "L'ennemie pioche !" << std::endl;
+      _handE.takeCard(_deck.makeCard(_deck.gType(type), _deck.gClan(clan)));
+    }
+  else
+    _hand.takeCard(_deck.makeCard(_deck.gType(type), _deck.gClan(clan)));
+  _phase = BattleConnect::ServerPhase;
+}
+
+void BattleConnect::dropWell(sf::Packet &packet)
+{
+  sf::Uint32	well;
+  bool		oppenent;
+
+  packet >> oppenent;
+  packet >> well;
+  if (oppenent)
+    _handE.takeCard(_well->popCard(well));
+  else
+    _hand.takeCard(_well->popCard(well));
+  _phase = BattleConnect::ServerPhase;
+}
+
+void BattleConnect::dropBoard(sf::Packet &packet)
+{
+  sf::Uint32	board;
+  sf::Uint32	pos;
+  bool		oppenent;
+
+  packet >> oppenent;
+  packet >> board >> pos;
+  if (oppenent)
+    _handE.takeCard(_fieldsE[board]->drop(pos));
+  else
+    _hand.takeCard(_fields[board]->drop(pos));
+  _phase = BattleConnect::ServerPhase;
+}
+
+void BattleConnect::putWell(sf::Packet &packet)
+{
+  sf::Uint32	well;
+  bool		oppenent;
+
+  packet >> oppenent;
+  packet >> well;
+  if (oppenent)
+    _well->addCard(_handE.giveCard(), well);
+  else
+    _well->addCard(_hand.giveCard(), well);
+  _phase = BattleConnect::ServerPhase;
+}
+ 
+void BattleConnect::putBoard(sf::Packet &packet)
+{
+  sf::Uint32	board;
+  bool		oppenent;
+
+  packet >> oppenent;
+  packet >> board;
+  if (oppenent)
+    _fieldsE[board]->addCard(_handE.giveCard());
+  else
+    _fields[board]->addCard(_hand.giveCard());
+  _phase = BattleConnect::ServerPhase;
+}
+
+
+//	APRES
+
 
 void BattleConnect::moveOpponent(std::size_t x, std::size_t y)
 {
@@ -279,20 +488,4 @@ Deck &BattleConnect::getDeck()
 void BattleConnect::setPhase(BattleConnect::BattlePhase p)
 {
   _phase = p;
-}
-
-BattleConnect::BattlePhase BattleConnect::getPhase()
-{
-  return (_phase);
-}
-
-void BattleConnect::setPosition(int x, int y)
-{
-  _x = x;
-  _y = y;
-  if (_x < 0)
-    _x = 0;
-  if (_y < 0)
-    _y = 0;
-  _server->setPosition(static_cast<std::size_t>(1920 - x), static_cast<std::size_t>(1080 - y));
 }

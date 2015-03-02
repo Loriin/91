@@ -35,29 +35,31 @@ public:
     }		Connect;
 
 public:
-  // Constructeur
+  // Indispensable
   BattleConnect(Engine *, unsigned int = 0, unsigned int = 0);
   ~BattleConnect();
-public:
-  // Module
   void drawModule();
   void eventModule();
   void updateModule();
   void closeModule();
   void openModule();
-  void setPosition(int, int);
-
-public:
-  // Indispensable
   bool drawEvent();
   bool mainEvent();
   void textEvent();
   Deck &getDeck();
   void setPhase(BattlePhase);
-  BattlePhase getPhase();
-
 public:
   // Network
+  void sendCommand(std::size_t, std::size_t = 0, std::size_t = 0);
+  void listenSocket();
+  void moveOpponent(sf::Packet &packet);
+  void dropCard(sf::Packet &packet);
+  void dropWell(sf::Packet &packet);
+  void dropBoard(sf::Packet &packet);
+  void putWell(sf::Packet &packet);
+  void putBoard(sf::Packet &packet);
+  bool receiveSpecial(sf::Packet&, sf::Uint32);
+
   void moveOpponent(std::size_t, std::size_t);
   void dropCard(Card::CardType, Card::Clan, bool = false);
   void dropWell(std::size_t, bool = false);
@@ -79,10 +81,16 @@ private:
   std::vector<sf::RectangleShape*> _toto;
   Field		*_fields[3];
   Field		*_fieldsE[3];
+  void		(BattleConnect::*_execute[6])(sf::Packet&);
   Well		*_well;
   BattlePhase	_phase;
 
 private:
+  // NetWork
+  std::vector<sf::Packet>	_cmd;
+  sf::TcpSocket			_socket;
+  sf::Thread			_th;
+  Connect			_connect;
   std::string			_ip;
   Server			*_server;
 };
