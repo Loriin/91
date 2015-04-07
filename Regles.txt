@@ -46,3 +46,42 @@ Les carte :
 3 * 5 valet		2	3
 9 * 5 noble		1	2
 1 mage			30
+
+
+
+Les commandes : 
+
+
+sf::Uint32 ou sf::Int32
+
+trame de commande : [numéro de commande][advs][arg1][arg2][arg3][arg4] chaque case est un Uint32 (or advs)
+
+advs = true => commande pour advs
+advs = false => cmd pour soit
+
+
+0 - 9 -> changement phase
+
+[0][advs] (pas d'argument) = DrawPhase
+[1][advs] = MainPhase
+[2][advs] = EndPhase
+[3][advs] = ServerPhase
+[4][advs] = Erreur
+
+10 - 99 -> action de jeu
+
+[10][advs][arg1][arg2][arg3][arg4] = joueur 'advs' pioche une carte. arg1 = TYPE. arg2 = FACTION, arg3 = valeur simple, arg4 = valeur de groupe
+[11][advs][arg1][arg2] = joueur advs pioche une carte sur le fiel numéro arg1 à l'emplacement arg2
+[12][advs][arg1][arg2] = joueur advs pioche une carte sur le terrain commun numéro arg1 à l'emplacement arg2
+
+[13][advs][arg1][arg2] = joueur advs pose une carte sur le fiel numéro arg1 à l'emplacement arg2
+[14][advs][arg1][arg2] = joueur advs pose une carte sur le terrain commun numéro arg1 à l'emplacement arg2
+
+100 - 999 -> action de terrain et environement
+
+[100][advs][arg1] = le joueur advs vois son fiel numéro arg1 détruit (tous va dans la pioche)
+[101][advs][arg1] = le joueur advs vois le terrain commun numéro arg1 détruit (tous va dans la pioche)
+[102][advs][arg1] = le joueur advs gagne
+[103][advs][arg1] = le joueur advs perd
+
+[105][advs][arg1] = le score du joueur advs est arg1
