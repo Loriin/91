@@ -19,7 +19,7 @@ void Game::drawModule()
 
 void Game::eventModule()
 {
-  
+  //	Liste des evenements
 }
 
 void Game::updateModule()
@@ -50,4 +50,9 @@ void Game::setPosition(int x, int y)
     y = 0;
   _x = x;
   _y = y;
+}
+
+void	Game::execute()
+{
+
 }

@@ -12,12 +12,14 @@ class Game : public Module
 public:
 Game(Engine *, std::size_t = 0, std::size_t = 0);
 ~Game();
-  void drawModule();
-  void eventModule();
-  void updateModule();
-  void closeModule();
-  void openModule();
-  void setPosition(int, int);
+  void		drawModule();
+  void		updateModule();
+  void		closeModule();
+  void		openModule();
+  void		setPosition(int, int);
+public:
+  virtual void	eventModule();
+  virtual void	execute();
 };
 
 #endif
