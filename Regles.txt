@@ -1,0 +1,48 @@
+Nombre de joueur : 2
+
+
+Le plateau :
+
+- 3 terrain : fields (alignement) bon, mauvais, neutre : Chaque field possede 7 places
+
+- score:
+
+- pile de buff / debuff => Buff dépend de la compinaison et de l'alignement du field
+
+- Une main (contien de 0 à 1 carte)
+
+
+Commun : 
+
+- 4 terrain commun sans Alignement qui appartiene au deux joueur => possede 5 place (20 cartes)
+
+- quand tu remplis un terrain commun => il ce vide ENTIEREMENT dans la pioche
+
+
+Un tour :
+
+2 phase : 
+
+DrawPhase:
+	- piocher dans un de field
+	- piocher sur la pioche
+	- piocher dans un terrain commun
+MainPhase:
+	- Pose sur un de ces field
+	- pose sur un terrain commun
+
+EndPhase:
+	- tour de l'adversaire
+
+ServerPhase:
+	- Attente du serveur:
+
+Les carte :
+
+1 * 5 roi		8	10
+1 * 5 reine		7	9
+2 * 5 chevalier		5	6
+2 * 5 clerc		4	6
+3 * 5 valet		2	3
+9 * 5 noble		1	2
+1 mage			30
