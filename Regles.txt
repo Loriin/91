@@ -85,3 +85,19 @@ advs = false => cmd pour soit
 [103][advs][arg1] = le joueur advs perd
 
 [105][advs][arg1] = le score du joueur advs est arg1
+
+
+Les commande client
+
+Trame de commande : [numéro de commande][arg1][arg2][arg3][arg4] chaque case est un Uint32
+
+1000 - 9999 -> action client vers server
+
+[1000] -> piocher une carte
+[1001][arg1][arg2] -> piocher sur le field numéro arg1 à l'emplacement arg2
+[1002][arg1][arg2] -> piocher sur le terrain commun numéro arg1 à l'emplacement arg2
+
+[1010][arg1][arg2] -> poser sur le field numéro arg1 à l'emplacement arg2
+[1011][arg1][arg2] -> piocher sur le terrain commun numéro arg1 à l'emplacement arg2
+
+[1100] -> abandoner
