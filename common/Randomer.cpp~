@@ -1,0 +1,15 @@
+#include <iostream>
+
+#include "Randomer.hh"
+
+Randomer::iniRand();
+
+std::size_t	Randomer::random(std::size_t limit)
+{
+  return (rand() % limit);
+}
+
+void		Randomer::iniRand()
+{
+  srand(static_cast<int>(time(0)));
+}

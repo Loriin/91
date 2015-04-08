@@ -9,7 +9,11 @@ SRC	=	Engine.cpp \
 		Sticker.cpp \
 		Game.cpp \
 		MainMenu.cpp \
-		Tools.cpp
+		Tools.cpp \
+		GCard.cpp \
+		../common/Card.cpp \
+		../common/Deck.cpp \
+		../common/Randomer.cpp
 
 RM	=	rm -rf
 
