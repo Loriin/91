@@ -7,6 +7,12 @@ Card::Card(Card::TYPE type, Card::FACTION faction,
   _value[1] = s2;
 }
 
+Card::Card(const Card &c) : _type(c._type), _faction(c._faction)
+{
+  _value[0] = c._value[0];
+  _value[1] = c._value[1];
+}
+
 Card::~Card()
 {
 

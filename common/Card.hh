@@ -28,6 +28,7 @@ public:
 
 public:
   Card(TYPE, FACTION, std::size_t = 0, std::size_t = 0);
+  Card(const Card&);
   ~Card();
   std::size_t	getValue(bool = false);
   TYPE		getType();
